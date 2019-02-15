@@ -5,7 +5,8 @@ from PIL import Image, ImageDraw
 
 import csv
 
-path = os.getcwd().replace("\\", "/")
+path = os.getcwd().replace("\\", "/").replace("/results.py-master", "")
+print(path)
 
 def OpenPaste(image, link, PSCoor = (1, 1)):
   opened = Image.open(link)
@@ -21,6 +22,7 @@ def Hearts(im, normalH, prizeH, painH, spellH):
   #the display order should be: normal, prize, prize hurt OR normal, normal hurt, prize hurt 
   #where hurt is either pain or spell, spell always comes after pain
   #the display is calculated backwards (don't ask why)
+  #Also this accidentally works for dead people too, where normal is either 0 or negative
   if (prizeH > painH + spellH):
     prize = prizeH - painH - spellH
     prizeSpell = spellH
@@ -47,13 +49,13 @@ def Hearts(im, normalH, prizeH, painH, spellH):
 
   #correcting for over 9 display hearts (this also corrects for having more than 9 lives) (normal, spell and pain can never be more than 9 so no need to correct those)
   if(displaySum > 9):
-    while(displaySum > 9 & prizeSpell != 0):
+    while(displaySum > 9 & prizeSpell > 0):
       displaySum -= 1
       prizeSpell -= 1
-    while(displaySum > 9 & prizePain != 0):
+    while(displaySum > 9 & prizePain > 0):
       displaySum -= 1
       prizePain -= 1
-    while(displaySum > 9 & prize != 0):
+    while(displaySum > 9 & prize > 0):
       displaySum -= 1
       prize -= 1
 
@@ -63,23 +65,23 @@ def Hearts(im, normalH, prizeH, painH, spellH):
   for i in range(919, 910, -4):
     h = int((919 - i) * 30 / 4) + 5
     for w in range(i, i + 61, 30):
-      if(displaySum != 0):
-        if(normal != 0):
+      if(displaySum > 0):
+        if(normal > 0):
           heartName = "regular"
           normal -= 1
-        elif(pain != 0):
+        elif(pain > 0):
           heartName = "dying"
           pain -= 1
-        elif(spell != 0):
+        elif(spell > 0):
           heartName = "spent"
           spell -= 1
-        elif(prize != 0):
+        elif(prize > 0):
           heartName = "bonus"
           prize -= 1
-        elif(prizePain != 0):
+        elif(prizePain > 0):
           heartName = "gold" #right now this should never happen (and I also don't have dying bonus art currently) so it's a gold version of the bonus heart
           prizePain -= 1
-        elif(prizeSpell != 0):
+        elif(prizeSpell > 0):
           heartName = "spent bonus"
           prizeSpell -= 1
         displaySum -= 1
@@ -102,6 +104,8 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
 
 with open(path + "/results.tsv", encoding="utf8") as tsvfile:
   reader = csv.DictReader(tsvfile, dialect='excel-tab')
+  slides = []
+  counter = 0
 
   for row in reader:
     im = Image.new("RGB",(1200, 101))
@@ -143,7 +147,16 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
         OpenPaste(im, path + "/mod results assets/backrounds/dead backround.png")
         Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives']))
 
-    im.save(path + "/tests/slide" + str(placement) + ".png", "PNG")
+    slides.append(im)
+    counter += 1
+    #im.save(path + "/tests/slide" + str(placement) + ".png", "PNG")
+  
+  im = Image.new("RGB",(1200, 101 * counter))
+
+  for i in range(0, counter):
+    im.paste(slides[i], (0, i * 101))
+
+  im.save(path + "/tests/leaderboard.png", "PNG")
 
 #im = Image.new("RGB",(1200, 101))
 
@@ -156,4 +169,3 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
 #Todo:
 #Text: name, response, placement, score and std dev
 #Booksona
-#Combining all finished slides into one big leaderboard
