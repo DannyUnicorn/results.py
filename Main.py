@@ -1,12 +1,11 @@
 import sys
 import os
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageFont, ImageDraw
 
 import csv
 
 path = os.getcwd().replace("\\", "/").replace("/results.py-master", "")
-print(path)
 
 def OpenPaste(image, link, PSCoor = (1, 1)):
   opened = Image.open(link)
@@ -113,6 +112,7 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
     prizeLives = 0 #change to the column of the bonus lives when that gets added to the .tsv file
     spellLives = row['spellLives']
     painLives = 0
+    font = "Alegreya-Regular"
 
     try: #backround check (terrible puns in comments that don't make any sense ftw)
       placement = int(row['placement'])
@@ -120,6 +120,7 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
       if (nr < 0.1):
         backround = "prize"
         prizeLives += 1
+        font = "DS_Mysticora"
       elif (nr < 0.5):
         backround = "normal"
       elif (nr < 0.8):
@@ -144,8 +145,106 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
     #hearts paste and check if the person is dead (yeah I know it's ineffecient but idc that much)
     if (backround != "spell"): #if it's a spell, no need for lives
       if (Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives'])) < 1):
+        font = "SpecialElite"
         OpenPaste(im, path + "/mod results assets/backrounds/dead backround.png")
         Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives']))
+
+    #text stuff (a whole lotta variables for easy adjustment) (score stuff is also used for std dev except for coor)
+    if (font == "DS_Mysticora"): #prize
+      placementCenter = (58, 37)
+      placementSize = 84
+      placementFont = ImageFont.truetype(font, placementSize)
+      placementCoor = (placementCenter[0] - int(placementFont.getsize(row['placement'])[0] / 2), placementCenter[1] - int(placementFont.getsize(row['placement'])[1] / 2))
+      placementColor = (224, 207, 76, 255)
+
+      nameSize = 48
+      nameFont = ImageFont.truetype(font, nameSize)
+      nameCoor = (110, -3)
+      nameColor = (224, 207, 76, 255)
+
+      responseSize = 19
+      responseFont = ImageFont.truetype(font, responseSize)
+      responseCoor = (120, 61)
+      responseColor = (0, 0, 0, 255)
+
+      scoreSize = 24
+      scoreFont = ImageFont.truetype(font, scoreSize)
+      scoreCoor = (1062, 9)
+      stdDevCoor = (1062, 57)
+      scoreColor = (255, 255, 255, 255)
+    elif (backround == "spell"): #spell
+      placementCenter = (52, 35)
+      placementSize = 84
+      placementFont = ImageFont.truetype(font, placementSize)
+      placementCoor = (placementCenter[0] - int(placementFont.getsize(row['placement'])[0] / 2), placementCenter[1] - int(placementFont.getsize(row['placement'])[1] / 2))
+      placementColor = (0, 0, 0, 255)
+
+      nameSize = 48
+      nameFont = ImageFont.truetype(font, nameSize)
+      nameCoor = (110, -3)
+      nameColor = (0, 0, 0, 255)
+
+      responseSize = 19
+      responseFont = ImageFont.truetype(font, responseSize)
+      responseCoor = (120, 61)
+      responseColor = (0, 0, 0, 255)
+
+      scoreSize = 24
+      scoreFont = ImageFont.truetype(font, scoreSize)
+      scoreCoor = (1062, 9)
+      stdDevCoor = (1062, 57)
+      scoreColor = (255, 255, 255, 255)
+    elif (font == "Alegreya-Regular"): #normal
+      placementCenter = (56, 36)
+      placementSize = 84
+      placementFont = ImageFont.truetype(font, placementSize)
+      placementCoor = (placementCenter[0] - int(placementFont.getsize(row['placement'])[0] / 2), placementCenter[1] - int(placementFont.getsize(row['placement'])[1] / 2))
+      placementColor = (255, 255, 255, 255)
+
+      nameSize = 48
+      nameFont = ImageFont.truetype(font, nameSize)
+      nameCoor = (110, -3)
+      nameColor = (255, 255, 255, 255)
+
+      responseSize = 19
+      responseFont = ImageFont.truetype(font, responseSize)
+      responseCoor = (120, 61)
+      responseColor = (0, 0, 0, 255)
+
+      scoreSize = 24
+      scoreFont = ImageFont.truetype("Alegreya-Bold", scoreSize)
+      scoreCoor = (1062, 9)
+      stdDevCoor = (1062, 57)
+      scoreColor = (255, 255, 255, 255)
+    else: #dead
+      placementCenter = (58, 37)
+      placementSize = 84
+      placementFont = ImageFont.truetype(font, placementSize)
+      placementCoor = (placementCenter[0] - int(placementFont.getsize(row['placement'])[0] / 2), placementCenter[1] - int(placementFont.getsize(row['placement'])[1] / 2))
+      placementColor = (224, 207, 76, 255)
+
+      nameSize = 48
+      nameFont = ImageFont.truetype(font, nameSize)
+      nameCoor = (110, -3)
+      nameColor = (224, 207, 76, 255)
+
+      responseSize = 19
+      responseFont = ImageFont.truetype(font, responseSize)
+      responseCoor = (120, 61)
+      responseColor = (0, 0, 0, 255)
+
+      scoreSize = 24
+      scoreFont = ImageFont.truetype(font, scoreSize)
+      scoreCoor = (1062, 9)
+      stdDevCoor = (1062, 57)
+      scoreColor = (255, 255, 255, 255)
+
+    draw = ImageDraw.Draw(im)
+    draw.text(placementCoor, row['placement'], placementColor, placementFont)
+    draw.text(nameCoor, row['name'], nameColor, nameFont)
+    draw.text(responseCoor, row['response'], responseColor, responseFont)
+    draw.text(scoreCoor, row['score'], scoreColor, scoreFont)
+    draw.text(stdDevCoor, row['std dev'], scoreColor, scoreFont)
 
     slides.append(im)
     counter += 1
@@ -167,5 +266,6 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
 #im.save("slide" + placement + ".png")
 
 #Todo:
-#Text: name, response, placement, score and std dev
 #Booksona
+#Readjust text if necessary
+#Generate reveal slides (winner, 2nd place and then full top 5, after that 5 at a time until 2 before a section change and then 1 by 1)
