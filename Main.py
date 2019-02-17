@@ -103,10 +103,13 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
 
 with open(path + "/results.tsv", encoding="utf8") as tsvfile:
   reader = csv.DictReader(tsvfile, dialect='excel-tab')
-  slides = []
+  units = []
   counter = 0
+  last = [0, 0, 0] #[0] is the last person in the top 50, [1] is last in top 80 and [2] is last before under 30%
+  secondLast = [0, 0, 0] #second to last person in each section
 
   for row in reader:
+    counter += 1
     im = Image.new("RGB",(1200, 101))
     score = round(float(row['score'][:-1]), 2)
     prizeLives = 0 #change to the column of the bonus lives when that gets added to the .tsv file
@@ -121,19 +124,29 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
         backround = "prize"
         prizeLives += 1
         font = "DS_Mysticora"
+        secondLast[0] = last[0]
+        last[0] = counter #just in case
       elif (nr < 0.5):
         backround = "normal"
+        secondLast[0] = last[0]
+        last[0] = counter
       elif (nr < 0.8):
         if (score > 30):
           backround = "bottom 50"
           painLives = 1
+          secondLast[1] = last[1]
+          last[1] = counter
         else:
           backround = "/shrug" #it's unlikely and PMP and I wanted to make this a meme but he did it using the old program so I'll make a new meme backround eventually
           painLives = 4
+          secondLast[1] = last[1]
+          last[1] = counter
       else:
         if (score > 30):
           backround = "bottom 20"
           painLives = 3
+          secondLast[2] = last[2]
+          last[2] = counter
         else:
           backround = "under 30"
           painLives = 6
@@ -246,26 +259,80 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
     draw.text(scoreCoor, row['score'], scoreColor, scoreFont)
     draw.text(stdDevCoor, row['std dev'], scoreColor, scoreFont)
 
-    slides.append(im)
-    counter += 1
-    #im.save(path + "/tests/slide" + str(placement) + ".png", "PNG")
+    units.append(im)
   
-  im = Image.new("RGB",(1200, 101 * counter))
+  #results slides generation
+  nameCounter = 1
+  im = Image.new("RGB", (1200, 101))
+  im.paste(units[0])
+  im.save(path + "/tests/slide" + str(nameCounter) + ".png", "PNG")
+  nameCounter += 1
+  im = Image.new("RGB", (1200, 202))
+  im.paste(units[0])
+  im.paste(units[1], (0, 101))
+  im.save(path + "/tests/slide" + str(nameCounter) + ".png", "PNG")
+  nameCounter += 1
+  last.insert(0, 0) #shifts last[] values back so last[x]:secondLast[x] are whole zones (excluding the last and second to last people)
+  for i in range(0, 3): #going through each zone
+    #generating size 5 slides until it can't without showing the second to last person
+    for j in range(last[i], secondLast[i] - 5, 5):
+      im = Image.new("RGB", (1200, 505))
+      for k in range(j, j + 5):
+        im.paste(units[k], (0, (k - j) * 101))
+      im.save(path + "/tests/slide" + str(nameCounter) + ".png", "PNG")
+      nameCounter += 1
+      k = 0
 
+    #generating the last large slide (if the zone's size isn't a multiple of 5, if it is it'll be included in the previous loop) before the second to last person, where 1 by 1s will begin
+    im = Image.new("RGB", (1200, 101 * (secondLast[i] - j - 6)))
+    for m in range(j + 3, secondLast[i] - 1): 
+      im.paste(units[m], (0, 101 * (m - j - 5)))
+    try: #if the image has 0 height (which will happen if the zone's size is a multiple of 5) saving it will crash
+      im.save(path + "/tests/slide" + str(nameCounter) + ".png", "PNG")
+      nameCounter += 1
+    except:
+      pass
+
+    #generating 1 by 1s from the second to last person to the last person, including both
+    for l in range(m + 1, last[i+1]):
+      im = Image.new("RGB", (1200, 101))
+      im.paste(units[l])
+      im.save(path + "/tests/slide" + str(nameCounter) + ".png", "PNG")
+      nameCounter += 1
+
+    #resetting variables
+    j = 0
+    k = 0
+    m = 0
+    l = 0 
+
+  #taking care of the last zone, where final 1 by 1s aren't necessary
+  for j in range(last[3], int(units.__len__() / 5) * 5 + 1, 5):
+    #generating size 5 slides until the last slide, which is smaller than the rest
+    im = Image.new("RGB", (1200, 505))
+    for k in range(j, j + 5):
+      im.paste(units[k], (0, (k - j) * 101))
+    im.save(path + "/tests/slide" + str(nameCounter) + ".png", "PNG")
+    nameCounter += 1
+    k = 0
+
+  #generating the last smaller slide
+  im = Image.new("RGB", (1200, 101 * (units.__len__() - j - 5)))
+  for e in range(j + 5, units.__len__()):
+    im.paste(units[e], (0, 101 * (e - j - 5)))
+  try: #again, if the zone's size is a multiple of 5 then the height is zero which will crash when trying to save
+    im.save(path + "/tests/slide" + str(nameCounter) + ".png", "PNG")
+  except:
+    pass
+  
+  #generating the full leaderboard
+  im = Image.new("RGB", (1200, 101 * counter))
   for i in range(0, counter):
-    im.paste(slides[i], (0, i * 101))
-
+    im.paste(units[i], (0, i * 101))
   im.save(path + "/tests/leaderboard.png", "PNG")
-
-#im = Image.new("RGB",(1200, 101))
-
-#OpenPaste(im, path + "/mod results assets/backrounds/prize backround.png") #backround
-
-#lives = Hearts(im, 9, 0, 2, 5)
-
-#im.save("slide" + placement + ".png")
 
 #Todo:
 #Booksona
 #Readjust text if necessary
-#Generate reveal slides (winner, 2nd place and then full top 5, after that 5 at a time until 2 before a section change and then 1 by 1)
+#Fix bug where non UTF-8 characters appear as a space
+#Add a whole bunch of shit to the github repository
