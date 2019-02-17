@@ -119,17 +119,17 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
 
     try: #backround check (terrible puns in comments that don't make any sense ftw)
       placement = int(row['placement'])
-      if (placement < contestants * 0.1):
+      if (placement < round(contestants * 0.1) + 1):
         backround = "prize"
         prizeLives += 1
         font = "DS_Mysticora"
         secondLast[0] = last[0]
         last[0] = counter #just in case
-      elif (placement < contestants * 0.5):
+      elif (placement < round(contestants * 0.5) + 1):
         backround = "normal"
         secondLast[0] = last[0]
         last[0] = counter
-      elif (placement < contestants * 0.8):
+      elif (placement < round(contestants * 0.8) + 1):
         if (score > 30):
           backround = "bottom 50"
           painLives = 1
