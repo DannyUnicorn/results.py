@@ -7,6 +7,7 @@ import csv
 
 path = os.getcwd().replace("\\", "/").replace("/results.py-master", "")
 
+#a function for opening a picture based on a link and pasting it on an image, based on photoshop coordinates which are 0-indexed
 def OpenPaste(image, link, PSCoor = (1, 1)):
   opened = Image.open(link)
   zeroCoor = (PSCoor[0]-1, PSCoor[1]-1)
@@ -16,7 +17,6 @@ def OpenPaste(image, link, PSCoor = (1, 1)):
     image.paste(opened, zeroCoor, opened)
 
 def Hearts(im, normalH, prizeH, painH, spellH):
-
   #heart display calculation
   #the display order should be: normal, prize, prize hurt OR normal, normal hurt, prize hurt 
   #where hurt is either pain or spell, spell always comes after pain
@@ -119,18 +119,17 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
 
     try: #backround check (terrible puns in comments that don't make any sense ftw)
       placement = int(row['placement'])
-      nr = (placement - 1)/(contestants - 1) #normalized ranks... sorta, first place is 0 and last place is 1
-      if (nr < 0.1):
+      if (placement < contestants * 0.1):
         backround = "prize"
         prizeLives += 1
         font = "DS_Mysticora"
         secondLast[0] = last[0]
         last[0] = counter #just in case
-      elif (nr < 0.5):
+      elif (placement < contestants * 0.5):
         backround = "normal"
         secondLast[0] = last[0]
         last[0] = counter
-      elif (nr < 0.8):
+      elif (placement < contestants * 0.8):
         if (score > 30):
           backround = "bottom 50"
           painLives = 1
