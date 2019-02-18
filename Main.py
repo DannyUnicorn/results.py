@@ -154,12 +154,35 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
       backround = "spell"
     OpenPaste(im, path + "/mod results assets/backrounds/" + backround + " backround.png")
 
+    #booksona (in a try block cuz I don't feel like manually adding IDs to everyone in the test leaderboard, so some people will have no data and it'll crash)
+    try:
+      booksonaCenter = (864, 50)
+      for file in os.listdir(path + "/mod results assets/booksonas"):
+        if file.startswith(row['ID']):
+          booksona = Image.open(path + "/mod results assets/booksonas/" + row['ID'] + ".png")
+
+          #resizing to fit the allowed area (but keeping the aspect ratio)
+          if(booksona.size[0] > 92):
+            newSize = (92, booksona.size[1] - (booksona.size[0] - 92))
+            booksona.thumbnail(newSize)
+          if(booksona.size[1] > 92):
+            newSize = (booksona.size[0] - (booksona.size[1] - 92), 92)
+            booksona.thumbnail(newSize)
+          
+          #recentering based on size (since paste() takes the top left corner of an image)
+          booksonaCoor = (booksonaCenter[0] - int(booksona.size[0] / 2), booksonaCenter[1] - int(booksona.size[1] / 2))
+          im.paste(booksona, booksonaCoor, booksona)
+    except:
+      pass
+
     #hearts paste and check if the person is dead (yeah I know it's ineffecient but idc that much)
     if (backround != "spell"): #if it's a spell, no need for lives
       if (Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives'])) < 1):
         font = "SpecialElite"
         OpenPaste(im, path + "/mod results assets/backrounds/dead backround.png")
         Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives']))
+        im.paste(booksona, (booksonaCenter[0] - int(booksona.size[0] / 2), booksonaCenter[1] - int(booksona.size[1] / 2)), booksona)
+        OpenPaste(im, path + "/mod results assets/spiral thingy.png", (booksonaCoor[0] + 1, booksonaCoor[1] + 1))
 
     #text stuff (a whole lotta variables for easy adjustment) (score stuff is also used for std dev except for coor)
     if (font == "DS_Mysticora"): #prize
@@ -332,6 +355,5 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
 
 #Todo:
 #Booksona
-#Readjust text if necessary
 #Fix bug where non UTF-8 characters appear as a space
 #Add a whole bunch of shit to the github repository
