@@ -116,7 +116,6 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
     spellLives = row['spellLives']
     painLives = 0
     font = "Alegreya-Regular"
-
     try: #backround check (terrible puns in comments that don't make any sense ftw)
       placement = int(row['placement'])
       if (placement < round(contestants * 0.1) + 1):
@@ -354,6 +353,8 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
   im.save(path + "/tests/leaderboard.png", "PNG")
 
 #Todo:
-#Booksona
 #Fix bug where non UTF-8 characters appear as a space
 #Add a whole bunch of shit to the github repository
+#Resize text if it's too long
+#Add Danger and Peril
+#Add a manual mode
