@@ -8,7 +8,7 @@ import csv
 path = os.getcwd().replace("\\", "/").replace("/results.py-master", "")
 manualMode = True
 #fill this array with 2tuples of (how many lives earned or lost in this section, last placement in section). (lives earned are positive, lives lost are negative) (order the 2tuples by the order of the sections)
-sections = [(2, 2), (0, 3), (-4, 8)] #this is an example, prompt 4 Tattoo leaderboard
+sections = [(1, 6), (-3, 10)] #this is an example, prompt 4 Tattoo leaderboard
 
 def manualSections(sections):
   arr = []
@@ -194,13 +194,18 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
           booksona = Image.open(path + "/mod results assets/booksonas/" + row['ID'] + ".png")
 
           #resizing to fit the allowed area (but keeping the aspect ratio)
+          if(booksona.size[0] < 92):
+            new = (92 * booksona.size[0]) / booksona.size[1]
+            newSize = (92, new)
+            booksona.thumbnail(newSize)
           if(booksona.size[0] > 92):
-            newSize = (92, booksona.size[1] - (booksona.size[0] - 92))
+            new = booksona.size[1] - ((booksona.size[0] - 92) * booksona.size[1]) / booksona.size[0]
+            newSize = (92, new)
             booksona.thumbnail(newSize)
           if(booksona.size[1] > 92):
-            newSize = (booksona.size[0] - (booksona.size[1] - 92), 92)
+            new = booksona.size[0] - ((booksona.size[1] - 92) * booksona.size[0]) / booksona.size[1]
+            newSize = (new, 92)
             booksona.thumbnail(newSize)
-          
           #recentering based on size (since paste() takes the top left corner of an image)
           booksonaCoor = (booksonaCenter[0] - int(booksona.size[0] / 2), booksonaCenter[1] - int(booksona.size[1] / 2))
           im.paste(booksona, booksonaCoor, booksona)
@@ -209,15 +214,20 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
       pass
 
     spiralCenter = (820, 4)
-    #hearts paste and check if the person is dead (yeah I know it's ineffecient but idc that much)
+    #hearts paste, status and check if the person is dead (yeah I know it's ineffecient but idc that much)
     if (backround != "spell"): #if it's a spell, no need for lives
-      if (Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives'])) < 1):
+      heartCount = Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives']))
+      if (heartCount < 1):
         font = "SpecialElite"
         OpenPaste(im, path + "/mod results assets/backrounds/dead backround.png")
         Hearts(im, int(row['lives']), prizeLives, painLives, int(row['spellLives']))
         if(hasBooksona):
           im.paste(booksona, (booksonaCenter[0] - int(booksona.size[0] / 2), booksonaCenter[1] - int(booksona.size[1] / 2)), booksona)
         OpenPaste(im, path + "/mod results assets/spiral thingy.png", (spiralCenter[0] + 1, spiralCenter[1] + 1))
+      elif (heartCount == 1):
+        OpenPaste(im, path + "/mod results assets/status/peril.png", (755, 11))
+      elif (heartCount <= 3):
+        OpenPaste(im, path + "/mod results assets/status/danger.png", (755, 11))
 
     #text stuff (a whole lotta variables for easy adjustment) (score stuff is also used for std dev except for coor)
     if (font == "DS_Mysticora"): #prize
@@ -390,7 +400,6 @@ with open(path + "/results.tsv", encoding="utf8") as tsvfile:
   im.save(path + "/tests/leaderboard.png", "PNG")
 
 #Todo:
-#Fix bug where non UTF-8 characters appear as a space
-#Add a whole bunch of shit to the github repository
+#Fix bug where characters not in the font appear as a space
 #Resize text if it's too long
-#Add Danger and Peril
+#Add redness to -3 backround
